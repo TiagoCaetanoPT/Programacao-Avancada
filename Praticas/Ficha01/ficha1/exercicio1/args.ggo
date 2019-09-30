@@ -1,0 +1,4 @@
+package "Example of .ggo file"
+version "1.0"
+
+option "num" n "number" int required
