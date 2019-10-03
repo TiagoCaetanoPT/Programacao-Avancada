@@ -1,0 +1,241 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>~\Dropbox\Ensino\EI_PA\2017-18\01---Teoricas\08---socket_UDP_e_TCP\select_echo_server_stdin_TCP_UDP\server.c.html</title>
+<meta name="Generator" content="Vim/7.4">
+<meta name="plugin-version" content="vim7.4_v2">
+<meta name="syntax" content="c">
+<meta name="settings" content="use_css,pre_wrap,no_foldcolumn,prevent_copy=">
+<meta name="colorscheme" content="morning">
+<style type="text/css">
+<!--
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #e5e5e5; }
+body { font-family: monospace; color: #000000; background-color: #e5e5e5; }
+* { font-size: 1em; }
+.Type { color: #2e8b57; font-weight: bold; }
+.Statement { color: #804040; font-weight: bold; }
+.Comment { color: #0000ff; }
+.Constant { color: #ff00ff; background-color: #f2f2f2; padding-bottom: 1px; }
+.Special { color: #6a5acd; background-color: #f2f2f2; padding-bottom: 1px; }
+.PreProc { color: #a020f0; }
+-->
+</style>
+
+<script type='text/javascript'>
+<!--
+
+-->
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+<span class="Comment">/*</span><span class="Comment">*</span>
+<span class="Comment">* @file server.c</span>
+<span class="Comment">* @brief Description</span>
+<span class="Comment">* @date 2017-12-16</span>
+<span class="Comment">* @author Patricio R. Domingues</span>
+<span class="Comment">*/</span>
+
+<span class="PreProc">#include </span><span class="Constant">&lt;stdio.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;stdlib.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;sys/wait.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;unistd.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;signal.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;errno.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;string.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;sys/types.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;sys/stat.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;fcntl.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;assert.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;time.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;arpa/inet.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;sys/socket.h&gt;</span>
+
+<span class="PreProc">#include </span><span class="Constant">&quot;debug.h&quot;</span>
+<span class="PreProc">#include </span><span class="Constant">&quot;memory.h&quot;</span>
+<span class="PreProc">#include </span><span class="Constant">&quot;common.h&quot;</span>
+<span class="PreProc">#include </span><span class="Constant">&quot;server_args.h&quot;</span>
+
+<span class="PreProc">#include </span><span class="Constant">&lt;sys/select.h&gt;</span>
+
+<span class="Type">void</span> process_stdin(<span class="Type">void</span>);
+<span class="Type">int</span> serv_tcp_echo(<span class="Type">int</span> sock_tcp);
+<span class="Type">int</span> serv_udp_echo(<span class="Type">int</span> sock_udp);
+
+<span class="Type">int</span> main(<span class="Type">int</span> argc, <span class="Type">char</span> *argv[])
+{
+	<span class="Type">struct</span> gengetopt_args_info args;
+
+	<span class="Comment">// gengetopt parser: deve ser a primeira linha de código no main</span>
+	<span class="Statement">if</span>( cmdline_parser(argc, argv, &amp;args) ){
+		ERROR(<span class="Constant">1</span>, <span class="Constant">&quot;Erro: execução de cmdline_parser</span><span class="Special">\n</span><span class="Constant">&quot;</span>);
+	}
+
+	<span class="Type">int</span> port = validate_port_number(args.port_arg);
+
+	<span class="Type">int</span> timeout_secs;
+	<span class="Statement">if</span>( args.timeout_given ){
+		 timeout_secs = args.timeout_arg;
+	}<span class="Statement">else</span>{
+		timeout_secs = -<span class="Constant">1</span>;
+	}
+
+	<span class="Comment">/*</span><span class="Comment"> UDP server </span><span class="Comment">*/</span>
+	<span class="Type">int</span> sock_udp = setup_server(port,SOCK_DGRAM);
+	<span class="Comment">/*</span><span class="Comment"> TCP server </span><span class="Comment">*/</span>
+	<span class="Type">int</span> sock_tcp = setup_server(port,SOCK_STREAM);
+
+
+	<span class="Type">size_t</span> num_descriptors = <span class="Constant">3</span>;
+	<span class="Type">int</span> *descriptors_V = malloc(<span class="Statement">sizeof</span>(<span class="Type">int</span>)*num_descriptors);
+	descriptors_V[<span class="Constant">0</span>] = <span class="Constant">0</span>;	<span class="Comment">// stdin</span>
+	descriptors_V[<span class="Constant">1</span>] = sock_tcp;
+	descriptors_V[<span class="Constant">2</span>] = sock_udp;
+	<span class="Type">int</span> max_select = max_descriptors(descriptors_V,num_descriptors);
+	max_select++;	<span class="Comment">// select needs max_select + 1</span>
+	free(descriptors_V);
+
+	printf(<span class="Constant">&quot;sock_tcp=</span><span class="Special">%d</span><span class="Constant">, sock_udp=</span><span class="Special">%d</span><span class="Constant">, max_select=</span><span class="Special">%d</span><span class="Special">\n</span><span class="Constant">&quot;</span>,
+			sock_tcp, sock_udp,max_select);
+
+	fd_set readfds;
+	fd_set *writefds_empty_ptr = <span class="Constant">NULL</span>;
+	fd_set *exceptfds_empty_ptr = <span class="Constant">NULL</span>;
+	<span class="Comment">// Configure timeout</span>
+	<span class="Type">struct</span> timeval *timeout_ptr;
+	<span class="Type">struct</span> timeval timeout_timeval;
+	<span class="Statement">while</span>(<span class="Constant">1</span>){
+		<span class="Statement">if</span> (timeout_secs &lt; <span class="Constant">0</span>){
+			timeout_ptr = <span class="Constant">NULL</span>; <span class="Comment">// No timeout</span>
+		}<span class="Statement">else</span>{
+			timeout_timeval.tv_sec = timeout_secs;
+			timeout_timeval.tv_usec = <span class="Constant">0</span>;
+			timeout_ptr = &amp;timeout_timeval;
+			printf(<span class="Constant">&quot;Setting timeout: </span><span class="Special">%d</span><span class="Constant"> sec(s)</span><span class="Special">\n</span><span class="Constant">&quot;</span>, timeout_secs);
+		}
+
+
+		<span class="Comment">// Configure readfds</span>
+		FD_ZERO(&amp;readfds);
+		FD_SET(<span class="Constant">0</span>,&amp;readfds);
+		FD_SET(sock_udp,&amp;readfds);
+		FD_SET(sock_tcp,&amp;readfds);
+
+		<span class="Comment">// call select</span>
+		<span class="Type">int</span> ret_select = select(max_select, &amp;readfds,
+		     writefds_empty_ptr, exceptfds_empty_ptr, timeout_ptr);
+		<span class="Statement">if</span>( ret_select == -<span class="Constant">1</span> ){
+			<span class="Statement">if</span> (errno == <span class="Constant">EINTR</span>){
+				fprintf(<span class="Constant">stderr</span>,<span class="Constant">&quot;[WARNING] EINTR detected</span><span class="Special">\n</span><span class="Constant">&quot;</span>);
+				<span class="Statement">continue</span>;
+			}<span class="Statement">else</span>{
+				fprintf(<span class="Constant">stderr</span>,<span class="Constant">&quot;[ERROR] '</span><span class="Special">%s</span><span class="Constant">'</span><span class="Special">\n</span><span class="Constant">&quot;</span>,
+					strerror(errno));
+				exit(<span class="Constant">EXIT_FAILURE</span>);
+			}
+		}
+		printf(<span class="Constant">&quot;select returned with </span><span class="Special">%d</span><span class="Constant"> descriptors active</span><span class="Special">\n</span><span class="Constant">&quot;</span>,
+								ret_select);
+		<span class="Statement">if</span>( ret_select == <span class="Constant">0</span> ){
+			printf(<span class="Constant">&quot;TIMEOUT (</span><span class="Special">%d</span><span class="Constant"> secs)</span><span class="Special">\n</span><span class="Constant">&quot;</span>, timeout_secs);
+			<span class="Statement">continue</span>;
+		}
+
+		<span class="Comment">// still here? Good: check the descriptors</span>
+		<span class="Statement">if</span>( FD_ISSET(<span class="Constant">0</span>,&amp;readfds) ){
+			printf(<span class="Constant">&quot;[STDIN]</span><span class="Special">\n</span><span class="Constant">&quot;</span>);
+			process_stdin();
+			<span class="Statement">continue</span>;
+		}<span class="Statement">else</span> <span class="Statement">if</span>( FD_ISSET(sock_tcp,&amp;readfds)){
+			printf(<span class="Constant">&quot;[TCP]</span><span class="Special">\n</span><span class="Constant">&quot;</span>);
+			serv_tcp_echo(sock_tcp);
+			<span class="Statement">continue</span>;
+		}<span class="Statement">else</span> <span class="Statement">if</span>( FD_ISSET(sock_udp,&amp;readfds) ){
+			printf(<span class="Constant">&quot;[UDP]</span><span class="Special">\n</span><span class="Constant">&quot;</span>);
+			serv_udp_echo(sock_udp);
+			<span class="Statement">continue</span>;
+		}
+	}<span class="Comment">//while(1)</span>
+
+
+	<span class="Comment">// gengetopt: libertar recurso</span>
+	cmdline_parser_free(&amp;args);
+
+    <span class="Statement">return</span> <span class="Constant">0</span>;
+}
+
+<span class="Type">void</span> process_stdin(<span class="Type">void</span>){
+	<span class="Type">char</span> S[<span class="Constant">256</span>];
+	fgets(S,<span class="Statement">sizeof</span>(S),<span class="Constant">stdin</span>);
+	chomp(S);
+	printf(<span class="Constant">&quot;Read: '</span><span class="Special">%s</span><span class="Constant">'</span><span class="Special">\n</span><span class="Constant">&quot;</span>, S);
+}
+
+<span class="Type">int</span> serv_tcp_echo(<span class="Type">int</span> sock_tcp){
+	<span class="Type">int</span> clnt_sock = accept(sock_tcp,<span class="Constant">NULL</span>,<span class="Constant">NULL</span>);
+	<span class="Statement">if</span>( clnt_sock == -<span class="Constant">1</span> ){
+		fprintf(<span class="Constant">stderr</span>,
+			<span class="Constant">&quot;[WARNING] Error in accept:</span><span class="Special">%s</span><span class="Special">\n</span><span class="Constant">&quot;</span>, strerror(errno));
+		<span class="Statement">return</span> -<span class="Constant">1</span>;
+	}
+	<span class="Comment">// still here? Deal with client</span>
+	<span class="Type">char</span> S[<span class="Constant">256</span>];
+	<span class="Type">size_t</span> buf_size = <span class="Statement">sizeof</span>(S)-<span class="Constant">1</span>;
+	<span class="Type">ssize_t</span> ret_recv=recv(clnt_sock,S,buf_size,<span class="Constant">0</span>);
+	<span class="Statement">if</span>( ret_recv == -<span class="Constant">1</span> ){
+		fprintf(<span class="Constant">stderr</span>,<span class="Constant">&quot;READ error:</span><span class="Special">%s</span><span class="Special">\n</span><span class="Constant">&quot;</span>,
+				strerror(errno));
+		close(clnt_sock);
+		<span class="Statement">return</span> -<span class="Constant">1</span>;
+	}
+	<span class="Statement">if</span>( ret_recv == <span class="Constant">0</span> ){
+		fprintf(<span class="Constant">stderr</span>, <span class="Constant">&quot;REMOTE closed connection</span><span class="Special">\n</span><span class="Constant">&quot;</span>);
+		close(clnt_sock);
+		<span class="Statement">return</span> -<span class="Constant">1</span>;
+	}
+	S[ret_recv] = <span class="Special">'\0'</span>;
+	printf(<span class="Constant">&quot;[READ </span><span class="Special">%zd</span><span class="Constant"> bytes] '</span><span class="Special">%s</span><span class="Constant">'</span><span class="Special">\n</span><span class="Constant">&quot;</span>, ret_recv,chomp(S));
+	<span class="Type">ssize_t</span> ret_send=send(clnt_sock,S,strlen(S),<span class="Constant">0</span>);
+	<span class="Statement">if</span>( ret_send == -<span class="Constant">1</span> ){
+		fprintf(<span class="Constant">stderr</span>,<span class="Constant">&quot;Can't send: </span><span class="Special">%s</span><span class="Special">\n</span><span class="Constant">&quot;</span>, strerror(errno));
+		close(clnt_sock);
+		<span class="Statement">return</span> -<span class="Constant">1</span>;
+	}
+
+	close(clnt_sock);
+	<span class="Statement">return</span> <span class="Constant">0</span>;
+}
+
+
+<span class="Type">int</span> serv_udp_echo(<span class="Type">int</span> sock_udp){
+	<span class="Type">char</span> S[<span class="Constant">256</span>];
+
+	<span class="Type">int</span> flags = <span class="Constant">0</span>;
+	<span class="Type">struct</span> sockaddr_in addr;
+	socklen_t addr_len = <span class="Statement">sizeof</span>(addr);
+	<span class="Type">size_t</span> buf_size = <span class="Statement">sizeof</span>(S)-<span class="Constant">1</span>;
+	<span class="Type">ssize_t</span> ret_recvfrom = recvfrom(sock_udp,S,buf_size,flags,
+					(<span class="Type">struct</span> sockaddr*)&amp;addr, &amp;addr_len);
+	<span class="Statement">if</span>( ret_recvfrom == -<span class="Constant">1</span> ){
+		fprintf(<span class="Constant">stderr</span>,<span class="Constant">&quot;RECVFROM error:</span><span class="Special">%s</span><span class="Special">\n</span><span class="Constant">&quot;</span>, strerror(errno));
+		<span class="Statement">return</span> -<span class="Constant">1</span>;
+	}
+
+	S[ret_recvfrom] = <span class="Special">'\0'</span>;
+	printf(<span class="Constant">&quot;[RECVFROM </span><span class="Special">%zd</span><span class="Constant"> bytes] '</span><span class="Special">%s</span><span class="Constant">'</span><span class="Special">\n</span><span class="Constant">&quot;</span>, ret_recvfrom,chomp(S));
+
+	<span class="Type">ssize_t</span> ret_sendto = sendto(sock_udp,S,strlen(S),flags,
+		(<span class="Type">struct</span> sockaddr*)&amp;addr, addr_len);
+	<span class="Statement">if</span>( ret_sendto == -<span class="Constant">1</span> ){
+		fprintf(<span class="Constant">stderr</span>,<span class="Constant">&quot;Can't send: </span><span class="Special">%s</span><span class="Special">\n</span><span class="Constant">&quot;</span>, strerror(errno));
+		<span class="Statement">return</span> -<span class="Constant">1</span>;
+	}
+	printf(<span class="Constant">&quot;[SENDTO] done</span><span class="Special">\n</span><span class="Constant">&quot;</span>);
+	<span class="Statement">return</span> <span class="Constant">0</span>;
+}
+
+</pre>
+</body>
+</html>
+<!-- vim: set foldmethod=manual : -->

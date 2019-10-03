@@ -1,0 +1,179 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>~\Dropbox\Ensino\EI_PA\2017-18\01---Teoricas\08---socket_UDP_e_TCP\select_echo_server_stdin_TCP_UDP\common.c.html</title>
+<meta name="Generator" content="Vim/7.4">
+<meta name="plugin-version" content="vim7.4_v2">
+<meta name="syntax" content="c">
+<meta name="settings" content="use_css,pre_wrap,no_foldcolumn,prevent_copy=">
+<meta name="colorscheme" content="morning">
+<style type="text/css">
+<!--
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #e5e5e5; }
+body { font-family: monospace; color: #000000; background-color: #e5e5e5; }
+* { font-size: 1em; }
+.Type { color: #2e8b57; font-weight: bold; }
+.Statement { color: #804040; font-weight: bold; }
+.Comment { color: #0000ff; }
+.Constant { color: #ff00ff; background-color: #f2f2f2; padding-bottom: 1px; }
+.Special { color: #6a5acd; background-color: #f2f2f2; padding-bottom: 1px; }
+.PreProc { color: #a020f0; }
+-->
+</style>
+
+<script type='text/javascript'>
+<!--
+
+-->
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+<span class="Comment">/*</span><span class="Comment">*</span>
+<span class="Comment">* @file common.c</span>
+<span class="Comment">* @brief código comum ao cliente e ao servidor</span>
+<span class="Comment">* @date 2017-12-12</span>
+<span class="Comment">* @author Patricio R. Domingues/Rui Ferreira</span>
+<span class="Comment">*/</span>
+
+<span class="PreProc">#include </span><span class="Constant">&lt;stdio.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;stdlib.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;sys/wait.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;unistd.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;signal.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;errno.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;string.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;sys/types.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;sys/stat.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;fcntl.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;assert.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;time.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;arpa/inet.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;sys/socket.h&gt;</span>
+
+<span class="PreProc">#include </span><span class="Constant">&quot;debug.h&quot;</span>
+<span class="PreProc">#include </span><span class="Constant">&quot;memory.h&quot;</span>
+<span class="PreProc">#include </span><span class="Constant">&quot;common.h&quot;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;limits.h&gt;</span>
+
+
+<span class="Type">char</span> *IPv4addr2str(<span class="Type">struct</span> sockaddr_in *addr_ptr, <span class="Type">char</span> *addr_S);
+
+<span class="Type">char</span> *IPv4addr2str(<span class="Type">struct</span> sockaddr_in *addr_ptr, <span class="Type">char</span> *addr_S){
+	assert(addr_ptr != <span class="Constant">NULL</span> );
+
+	<span class="Type">char</span> IP_S[<span class="Constant">16</span>];
+
+	<span class="Statement">if</span>( inet_ntop(AF_INET,&amp;(addr_ptr-&gt;sin_addr),IP_S,<span class="Statement">sizeof</span>(IP_S)) == <span class="Constant">NULL</span>){
+		sprintf(IP_S, <span class="Constant">&quot;</span><span class="Special">%s</span><span class="Constant">&quot;</span>, <span class="Constant">&quot;BAD IP&quot;</span>);
+	}
+
+	sprintf(addr_S, <span class="Constant">&quot;IP:'</span><span class="Special">%s</span><span class="Constant">'/port:</span><span class="Special">%d</span><span class="Constant">&quot;</span>, IP_S, ntohs(addr_ptr-&gt;sin_port));
+
+	<span class="Statement">return</span> addr_S;
+}
+
+<span class="Comment">/*</span><span class="Comment"> Function to validate a port (check whether the value is in range [0,2¹⁶-1]</span>
+<span class="Comment"> * @param port	[IN] port to validate.</span>
+<span class="Comment"> * @return on invalid port the function terminates the application</span>
+<span class="Comment"> * 2017-11-28</span>
+<span class="Comment"> </span><span class="Comment">*/</span>
+<span class="Type">unsigned</span> <span class="Type">short</span> validate_port_number(<span class="Type">int</span> port){
+	<span class="Statement">if</span>( port &lt; <span class="Constant">0</span> || port &gt;= PORT_MAX){
+		fprintf(<span class="Constant">stderr</span>,<span class="Constant">&quot;error: invalid port '</span><span class="Special">%hu</span><span class="Constant">'</span><span class="Special">\n</span><span class="Constant">&quot;</span>, port);
+		exit(<span class="Constant">2</span>);
+	}
+	<span class="Statement">return</span> (<span class="Type">unsigned</span> <span class="Type">short</span>) port;
+}
+
+<span class="Type">void</span> fillsockaddr_in(<span class="Type">char</span> *ipv4_S, <span class="Type">int</span> port, <span class="Type">struct</span> sockaddr_in *addr_ptr){
+
+	assert( addr_ptr != <span class="Constant">NULL</span>);
+
+	addr_ptr-&gt;sin_family = AF_INET;
+	addr_ptr-&gt;sin_port = htons(port);
+	<span class="Statement">if</span>( ipv4_S == <span class="Constant">NULL</span>){ <span class="Comment">// INADDR_ANY</span>
+		addr_ptr-&gt;sin_addr.s_addr = htonl(INADDR_ANY);
+	}<span class="Statement">else</span>{
+		<span class="Type">int</span> ret_inet_pton = inet_pton(AF_INET,
+				ipv4_S, &amp;(addr_ptr-&gt;sin_addr.s_addr));
+		<span class="Statement">if</span>( ret_inet_pton == -<span class="Constant">1</span> ){
+			ERROR(<span class="Constant">EXIT_FAILURE</span>,<span class="Constant">&quot;Cannot inet_pton (IP:</span><span class="Special">%s</span><span class="Constant">)&quot;</span>, ipv4_S);
+		}<span class="Statement">else</span> <span class="Statement">if</span>( ret_inet_pton == <span class="Constant">0</span> ){
+			fprintf(<span class="Constant">stderr</span>,<span class="Constant">&quot;[ERROR] Invalid IPv4 '</span><span class="Special">%s</span><span class="Constant">'</span><span class="Special">\n</span><span class="Constant">&quot;</span>, ipv4_S);
+			exit(<span class="Constant">EXIT_FAILURE</span>);
+		}
+	}
+	<span class="Comment">// done!</span>
+}
+
+
+<span class="Comment">/*</span><span class="Comment"> Creates and registers (bind) a server socket of type 'socket_type' </span><span class="Comment">*/</span>
+<span class="Type">int</span> setup_server(<span class="Type">int</span> port, <span class="Type">int</span> socket_type){
+	assert((socket_type == SOCK_DGRAM) || (socket_type==SOCK_STREAM));
+
+	<span class="Type">int</span> serv_sock = socket(AF_INET,socket_type,<span class="Constant">0</span>);
+	<span class="Statement">if</span>( serv_sock == -<span class="Constant">1</span> ){
+		ERROR(<span class="Constant">4</span>,<span class="Constant">&quot;Cannot create socket&quot;</span>);
+	}
+	<span class="Type">struct</span> sockaddr_in serv_addr;
+	memset(&amp;serv_addr,<span class="Constant">0</span>,<span class="Statement">sizeof</span>(serv_addr));
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_port = htons(port);
+	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	<span class="Comment">/*</span><span class="Comment"> Registo local - bind </span><span class="Comment">*/</span>
+	<span class="Statement">if</span>( bind(serv_sock,(<span class="Type">struct</span> sockaddr*)&amp;serv_addr,
+				<span class="Statement">sizeof</span>(serv_addr))==-<span class="Constant">1</span> ){
+		ERROR(<span class="Constant">5</span>,<span class="Constant">&quot;Cannot bind to port '</span><span class="Special">%d</span><span class="Constant">'</span><span class="Special">\n</span><span class="Constant">&quot;</span>, port);
+	}
+
+	<span class="Statement">if</span>( socket_type == SOCK_STREAM){
+		<span class="Type">int</span> backlog = SOMAXCONN;
+		<span class="Statement">if</span>( listen(serv_sock, backlog) == -<span class="Constant">1</span> ){
+			ERROR(<span class="Constant">6</span>,<span class="Constant">&quot;Cannot listen&quot;</span>);
+		}
+	}
+
+	printf(<span class="Constant">&quot;[SERVER (</span><span class="Special">%s</span><span class="Constant">)] Waiting at port '</span><span class="Special">%d</span><span class="Constant">'</span><span class="Special">\n</span><span class="Constant">&quot;</span>,
+			socktype2str(socket_type), port);
+	<span class="Statement">return</span> serv_sock;
+}
+
+<span class="Type">char</span> *socktype2str(<span class="Type">int</span> socket_type){
+	<span class="Statement">if</span>( socket_type == SOCK_DGRAM ){
+		<span class="Statement">return</span> <span class="Constant">&quot;SOCK_DGRAM&quot;</span>;
+	}<span class="Statement">else</span> <span class="Statement">if</span>( socket_type == SOCK_STREAM ){
+		<span class="Statement">return</span> <span class="Constant">&quot;SOCK_STREAM&quot;</span>;
+	}<span class="Statement">else</span>{
+		<span class="Statement">return</span> <span class="Constant">&quot;SOCK UNKNOWN&quot;</span>;
+	}
+}
+
+
+<span class="Type">int</span> max_descriptors(<span class="Type">int</span> *descriptors_V_ptr, <span class="Type">size_t</span> num_descriptors){
+
+	<span class="Type">int</span> max = <span class="Constant">INT_MIN</span>;
+	<span class="Statement">for</span>(<span class="Type">size_t</span> i=<span class="Constant">0</span>; i&lt;num_descriptors; i++){
+		<span class="Statement">if</span>( max &lt; descriptors_V_ptr[i] ){
+			max = descriptors_V_ptr[i];
+		}
+	}
+	assert(max != <span class="Constant">INT_MIN</span>);
+
+	<span class="Statement">return</span> max;
+}
+
+
+<span class="Type">char</span> *chomp(<span class="Type">char</span> *str){
+	assert(str != <span class="Constant">NULL</span>);
+	<span class="Type">size_t</span> str_len = strlen(str);
+	<span class="Statement">if</span>( (str_len &gt; <span class="Constant">0</span>) &amp;&amp; (str[str_len-<span class="Constant">1</span>] == <span class="Special">'\n'</span>) ){
+		str[str_len-<span class="Constant">1</span>] = <span class="Special">'\0'</span>;
+	}
+	<span class="Statement">return</span> str;
+}
+</pre>
+</body>
+</html>
+<!-- vim: set foldmethod=manual : -->
