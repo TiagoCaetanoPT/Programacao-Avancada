@@ -1,3 +1,4 @@
 Este ficheiro serve apenas para guardar a resposta ao Lab 1:
 Comando(s):
 
+ps -eLF |  grep init | grep -v grep | tr -s ' ' | cut -f6 -d' ' | tail -n1

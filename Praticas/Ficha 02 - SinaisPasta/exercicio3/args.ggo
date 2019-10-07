@@ -1,0 +1,18 @@
+package "Example of .ggo file"
+version "1.0"
+purpose "Simple example (optional)"
+description "description needed (optional)"
+versiontext "versiontext needed (optional)"
+
+#----------------------------
+# independent options
+#----------------------------
+# Mandatory option
+option "file" f "ficheiro a ler" string required
+
+# Optional
+#option "filename" f "number" int optional
+
+#
+# NOTE: support for this file needs to be enabled in 'makefile'
+#
