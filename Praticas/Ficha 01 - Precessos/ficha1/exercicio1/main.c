@@ -17,7 +17,6 @@
 #include "memory.h"
 #include "args.h"
 
-
 int main(int argc, char *argv[]){
 	
 	pid_t pid;

@@ -16,33 +16,50 @@
 #include "debug.h"
 #include "memory.h"
 
-int main(int argc, char *argv[]){
-	
+
+int main(int argc, char const *argv[])
+{
 	pid_t pid, pid1, pid2;
+	
 
-	pid = fork();
-	if(pid>0){//pai
-		printf("PAI PID %d PPID %d\n", getpid(), getppid());
-		waitpid(pid,NULL,0);
-	}else{//filho 1
-		printf("FILHO 1 PID %d PPID %d \n", getpid(), getppid());
-		exit(0);
-	}
 
-	pid1=fork();
-	if(pid1==0){
-		//filho 2
-		pid2=fork();
-		if(pid2==0){ //neto
-			printf("NETO PID %d PPID %d\n", getpid(), getppid());
-			exit(0);
-		}else{//filho2
-			printf("FILHO 2 PID %d PPID %d\n", getpid(), getppid());
-			waitpid(pid2,NULL,0);
-			exit(0);
-		}
-	}else{//pai 
-		wait(NULL);
-	}
+
 	return 0;
 }
+
+
+
+
+
+
+
+// int main(int argc, char *argv[]){
+	
+// 	pid_t pid, pid1, pid2;
+
+// 	pid = fork();
+// 	if(pid>0){//pai
+// 		printf("PAI PID %d PPID %d\n", getpid(), getppid());
+// 		waitpid(pid,NULL,0);
+// 	}else{//filho 1
+// 		printf("FILHO 1 PID %d PPID %d \n", getpid(), getppid());
+// 		exit(0);
+// 	}
+
+// 	pid1=fork();
+// 	if(pid1==0){
+// 		//filho 2
+// 		pid2=fork();
+// 		if(pid2==0){ //neto
+// 			printf("NETO PID %d PPID %d\n", getpid(), getppid());
+// 			exit(0);
+// 		}else{//filho2
+// 			printf("FILHO 2 PID %d PPID %d\n", getpid(), getppid());
+// 			waitpid(pid2,NULL,0);
+// 			exit(0);
+// 		}
+// 	}else{//pai 
+// 		wait(NULL);
+// 	}
+// 	return 0;
+// }

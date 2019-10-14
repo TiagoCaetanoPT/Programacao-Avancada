@@ -1,0 +1,4 @@
+Este ficheiro serve apenas para guardar a resposta ao Lab 1:
+Comando(s):
+
+ps -eLf | grep lxterminal$ | tr -s ' ' | cut -f6 -d' '
