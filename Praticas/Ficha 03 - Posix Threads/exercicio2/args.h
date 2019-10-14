@@ -39,17 +39,17 @@ struct gengetopt_args_info
 {
   const char *help_help; /**< @brief Print help and exit help description.  */
   const char *version_help; /**< @brief Print version and exit help description.  */
-  int num_threads_arg;	/**< @brief number.  */
-  char * num_threads_orig;	/**< @brief number original value given at command line.  */
-  const char *num_threads_help; /**< @brief number help description.  */
-  int qtsoma_arg;	/**< @brief numbersoma.  */
-  char * qtsoma_orig;	/**< @brief numbersoma original value given at command line.  */
-  const char *qtsoma_help; /**< @brief numbersoma help description.  */
+  int nthreads_arg;	/**< @brief number.  */
+  char * nthreads_orig;	/**< @brief number original value given at command line.  */
+  const char *nthreads_help; /**< @brief number help description.  */
+  int incremento_arg;	/**< @brief numero de incrementos.  */
+  char * incremento_orig;	/**< @brief numero de incrementos original value given at command line.  */
+  const char *incremento_help; /**< @brief numero de incrementos help description.  */
   
   unsigned int help_given ;	/**< @brief Whether help was given.  */
   unsigned int version_given ;	/**< @brief Whether version was given.  */
-  unsigned int num_threads_given ;	/**< @brief Whether num_threads was given.  */
-  unsigned int qtsoma_given ;	/**< @brief Whether qtsoma was given.  */
+  unsigned int nthreads_given ;	/**< @brief Whether nthreads was given.  */
+  unsigned int incremento_given ;	/**< @brief Whether incremento was given.  */
 
 } ;
 

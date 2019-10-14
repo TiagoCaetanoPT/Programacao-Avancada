@@ -34,10 +34,10 @@ const char *gengetopt_args_info_versiontext = "";
 const char *gengetopt_args_info_description = "";
 
 const char *gengetopt_args_info_help[] = {
-  "  -h, --help             Print help and exit",
-  "  -V, --version          Print version and exit",
-  "  -n, --num_threads=INT  number",
-  "  -q, --qtsoma=INT       numbersoma",
+  "  -h, --help            Print help and exit",
+  "  -V, --version         Print version and exit",
+  "  -n, --nthreads=INT    number",
+  "  -i, --incremento=INT  numero de incrementos",
     0
 };
 
@@ -65,16 +65,16 @@ void clear_given (struct gengetopt_args_info *args_info)
 {
   args_info->help_given = 0 ;
   args_info->version_given = 0 ;
-  args_info->num_threads_given = 0 ;
-  args_info->qtsoma_given = 0 ;
+  args_info->nthreads_given = 0 ;
+  args_info->incremento_given = 0 ;
 }
 
 static
 void clear_args (struct gengetopt_args_info *args_info)
 {
   FIX_UNUSED (args_info);
-  args_info->num_threads_orig = NULL;
-  args_info->qtsoma_orig = NULL;
+  args_info->nthreads_orig = NULL;
+  args_info->incremento_orig = NULL;
   
 }
 
@@ -85,8 +85,8 @@ void init_args_info(struct gengetopt_args_info *args_info)
 
   args_info->help_help = gengetopt_args_info_help[0] ;
   args_info->version_help = gengetopt_args_info_help[1] ;
-  args_info->num_threads_help = gengetopt_args_info_help[2] ;
-  args_info->qtsoma_help = gengetopt_args_info_help[3] ;
+  args_info->nthreads_help = gengetopt_args_info_help[2] ;
+  args_info->incremento_help = gengetopt_args_info_help[3] ;
   
 }
 
@@ -170,8 +170,8 @@ static void
 cmdline_parser_release (struct gengetopt_args_info *args_info)
 {
 
-  free_string_field (&(args_info->num_threads_orig));
-  free_string_field (&(args_info->qtsoma_orig));
+  free_string_field (&(args_info->nthreads_orig));
+  free_string_field (&(args_info->incremento_orig));
   
   
 
@@ -206,10 +206,10 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "help", 0, 0 );
   if (args_info->version_given)
     write_into_file(outfile, "version", 0, 0 );
-  if (args_info->num_threads_given)
-    write_into_file(outfile, "num_threads", args_info->num_threads_orig, 0);
-  if (args_info->qtsoma_given)
-    write_into_file(outfile, "qtsoma", args_info->qtsoma_orig, 0);
+  if (args_info->nthreads_given)
+    write_into_file(outfile, "nthreads", args_info->nthreads_orig, 0);
+  if (args_info->incremento_given)
+    write_into_file(outfile, "incremento", args_info->incremento_orig, 0);
   
 
   i = EXIT_SUCCESS;
@@ -326,15 +326,15 @@ cmdline_parser_required2 (struct gengetopt_args_info *args_info, const char *pro
   FIX_UNUSED (additional_error);
 
   /* checks for required options */
-  if (! args_info->num_threads_given)
+  if (! args_info->nthreads_given)
     {
-      fprintf (stderr, "%s: '--num_threads' ('-n') option required%s\n", prog_name, (additional_error ? additional_error : ""));
+      fprintf (stderr, "%s: '--nthreads' ('-n') option required%s\n", prog_name, (additional_error ? additional_error : ""));
       error_occurred = 1;
     }
   
-  if (! args_info->qtsoma_given)
+  if (! args_info->incremento_given)
     {
-      fprintf (stderr, "%s: '--qtsoma' ('-q') option required%s\n", prog_name, (additional_error ? additional_error : ""));
+      fprintf (stderr, "%s: '--incremento' ('-i') option required%s\n", prog_name, (additional_error ? additional_error : ""));
       error_occurred = 1;
     }
   
@@ -487,12 +487,12 @@ cmdline_parser_internal (
       static struct option long_options[] = {
         { "help",	0, NULL, 'h' },
         { "version",	0, NULL, 'V' },
-        { "num_threads",	1, NULL, 'n' },
-        { "qtsoma",	1, NULL, 'q' },
+        { "nthreads",	1, NULL, 'n' },
+        { "incremento",	1, NULL, 'i' },
         { 0,  0, 0, 0 }
       };
 
-      c = getopt_long (argc, argv, "hVn:q:", long_options, &option_index);
+      c = getopt_long (argc, argv, "hVn:i:", long_options, &option_index);
 
       if (c == -1) break;	/* Exit from `while (1)' loop.  */
 
@@ -511,23 +511,23 @@ cmdline_parser_internal (
         case 'n':	/* number.  */
         
         
-          if (update_arg( (void *)&(args_info->num_threads_arg), 
-               &(args_info->num_threads_orig), &(args_info->num_threads_given),
-              &(local_args_info.num_threads_given), optarg, 0, 0, ARG_INT,
+          if (update_arg( (void *)&(args_info->nthreads_arg), 
+               &(args_info->nthreads_orig), &(args_info->nthreads_given),
+              &(local_args_info.nthreads_given), optarg, 0, 0, ARG_INT,
               check_ambiguity, override, 0, 0,
-              "num_threads", 'n',
+              "nthreads", 'n',
               additional_error))
             goto failure;
         
           break;
-        case 'q':	/* numbersoma.  */
+        case 'i':	/* numero de incrementos.  */
         
         
-          if (update_arg( (void *)&(args_info->qtsoma_arg), 
-               &(args_info->qtsoma_orig), &(args_info->qtsoma_given),
-              &(local_args_info.qtsoma_given), optarg, 0, 0, ARG_INT,
+          if (update_arg( (void *)&(args_info->incremento_arg), 
+               &(args_info->incremento_orig), &(args_info->incremento_given),
+              &(local_args_info.incremento_given), optarg, 0, 0, ARG_INT,
               check_ambiguity, override, 0, 0,
-              "qtsoma", 'q',
+              "incremento", 'i',
               additional_error))
             goto failure;
         

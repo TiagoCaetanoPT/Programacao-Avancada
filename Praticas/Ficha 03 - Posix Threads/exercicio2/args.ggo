@@ -1,8 +1,8 @@
 package "Example of .ggo file"
 version "1.0"
 
-option "num_threads" n "number" int required
-option "qtsoma" q "numbersoma" int required
+option "nthreads" n "number" int required
+option "incremento" i "numero de incrementos" int required
 
 #
 # NOTE: support for this file needs to be enabled in 'makefile'

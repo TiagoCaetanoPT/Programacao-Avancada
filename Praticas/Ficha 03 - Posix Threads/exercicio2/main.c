@@ -19,75 +19,58 @@
 #include <pthread.h>
 #include <sched.h>
 
-//  Protóptipos
-void *task(void *arg);
-
-
-// Estrutura a 'passar' às threads
-typedef struct 
-{
-	int id;
+typedef struct{
+	int incremento; // valor a passar a cada thread
 }thread_params_t;
 
-int varglobal = 0;
+void *soma(void *arg);
+
+int G_shared_counter; // variavel glocal
 
 int main(int argc, char *argv[]){
-	/* Disable warnings */
-	(void)argc; (void)argv;
-
 	struct gengetopt_args_info args;
-
-	// gengetopt parser: deve ser a primeira linha de código no main
-	if(cmdline_parser(argc, argv, &args))
-		ERROR(1, "Erro: execução de cmdline_parser\n");
-
-	int NUM_THREADS = args.num_threads_arg;
-	int qtsoma= args.qtsoma_arg;
-
-	// na função main/outra  ** (não copiar este comentário) ** 
-	pthread_t tids[NUM_THREADS];
-	thread_params_t thread_params[NUM_THREADS];
-
-
-	// Inicialização das estruturas - para cada thread
-	for (int i = 0; i < NUM_THREADS; i++){
-		thread_params[i].id = i + 1;
-
-	}
-	
-	// Criação das threads + passagem de parâmetro
-	for (int i = 0; i < NUM_THREADS; i++){
-		if ((errno = pthread_create(&tids[i], NULL, task, &thread_params[i])) != 0)
-			ERROR(10, "Erro no pthread_create()!");	
+	thread_params_t  thread_params;
+	int i;
+	if(cmdline_parser(argc, argv, &args)){
+		ERROR(1, "Erro no cmdline_parser() \n");
 	}
 
-	for (int i = 0; i < qtsoma; ++i)
-	{
-		varglobal++;
-		sched_yield();
-	}
-	
+	G_shared_counter = 0;
 
-    // Espera que todas as threads terminem
-	for (int i = 0; i < NUM_THREADS; i++){
-		if ((errno = pthread_join(tids[i], NULL)) != 0)
-			ERROR(11, "Erro no pthread_join()!\n");
+	pthread_t tids[args.nthreads_arg]; // vetor de threads
+	thread_params.incremento = args.incremento_arg;
+
+	for (i = 0; i < args.nthreads_arg; i++) { // lança as n threads
+		if ((errno = pthread_create(&tids[i], NULL, soma, &thread_params)) != 0){
+			ERROR(2, "Erro no pthread_create()!");
+		}
 	}
 
-	// gengetopt: libertar recurso (assim que possível)
+	for (i = 0; i < args.nthreads_arg; i++) { // espera pelas n threads
+		if ((errno = pthread_join(tids[i], NULL)) != 0) {
+			ERROR(2, "Erro no pthread_create()!");
+		}
+	}
+
+	// quando todas as threads terminarem a sua execucao mostra o valor global
+	printf("G_shared_counter = %d (expeting %d)\n", G_shared_counter, args.nthreads_arg*args.incremento_arg);
+
+
 	cmdline_parser_free(&args);
-
 
 	return 0;
 }
 
-void *task(void *arg) 
-{
-	// cast para o tipo de dados enviado pela 'main thread'
-	//thread_params_t *params = (thread_params_t *) arg;
-	
-	// para debug :: (apagar se não for necessário)
-	printf("contador partilhado a: %d \n", varglobal);
-	
+
+void *soma(void *arg){ //funcao que vai ser executada para cada thread
+	thread_params_t*params = (thread_params_t *) arg;
+	int num_incrementos = params->incremento, i, local;
+
+	for (i = 0; i < num_incrementos; i++) {
+		local  = G_shared_counter; // obtem o valor da var global para a var local
+		sched_yield();
+		local+=1; // local = local + 1;
+		G_shared_counter = local;
+	}
 	return NULL;
 }
