@@ -18,7 +18,7 @@ LDFLAGS=#-pg
 IFLAGS=-linux -brs -brf -br
 
 # Name of the executable
-PROGRAM=exercicio2
+PROGRAM=exercicio3
 
 # Prefix for the gengetopt file (if gengetopt is used)
 PROGRAM_OPT=args

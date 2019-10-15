@@ -1,4 +1,6 @@
 package "Example of .ggo file"
 version "1.0"
 
-option "num_procs" n "number" int required
+option "num" n "number" int required
+
+

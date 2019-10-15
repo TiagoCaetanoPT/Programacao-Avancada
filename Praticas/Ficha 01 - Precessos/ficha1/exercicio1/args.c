@@ -34,9 +34,9 @@ const char *gengetopt_args_info_versiontext = "";
 const char *gengetopt_args_info_description = "";
 
 const char *gengetopt_args_info_help[] = {
-  "  -h, --help     Print help and exit",
-  "  -V, --version  Print version and exit",
-  "  -n, --num=INT  number",
+  "  -h, --help           Print help and exit",
+  "  -V, --version        Print version and exit",
+  "  -n, --num_procs=INT  number",
     0
 };
 
@@ -64,14 +64,14 @@ void clear_given (struct gengetopt_args_info *args_info)
 {
   args_info->help_given = 0 ;
   args_info->version_given = 0 ;
-  args_info->num_given = 0 ;
+  args_info->num_procs_given = 0 ;
 }
 
 static
 void clear_args (struct gengetopt_args_info *args_info)
 {
   FIX_UNUSED (args_info);
-  args_info->num_orig = NULL;
+  args_info->num_procs_orig = NULL;
   
 }
 
@@ -82,7 +82,7 @@ void init_args_info(struct gengetopt_args_info *args_info)
 
   args_info->help_help = gengetopt_args_info_help[0] ;
   args_info->version_help = gengetopt_args_info_help[1] ;
-  args_info->num_help = gengetopt_args_info_help[2] ;
+  args_info->num_procs_help = gengetopt_args_info_help[2] ;
   
 }
 
@@ -166,7 +166,7 @@ static void
 cmdline_parser_release (struct gengetopt_args_info *args_info)
 {
 
-  free_string_field (&(args_info->num_orig));
+  free_string_field (&(args_info->num_procs_orig));
   
   
 
@@ -201,8 +201,8 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "help", 0, 0 );
   if (args_info->version_given)
     write_into_file(outfile, "version", 0, 0 );
-  if (args_info->num_given)
-    write_into_file(outfile, "num", args_info->num_orig, 0);
+  if (args_info->num_procs_given)
+    write_into_file(outfile, "num_procs", args_info->num_procs_orig, 0);
   
 
   i = EXIT_SUCCESS;
@@ -319,9 +319,9 @@ cmdline_parser_required2 (struct gengetopt_args_info *args_info, const char *pro
   FIX_UNUSED (additional_error);
 
   /* checks for required options */
-  if (! args_info->num_given)
+  if (! args_info->num_procs_given)
     {
-      fprintf (stderr, "%s: '--num' ('-n') option required%s\n", prog_name, (additional_error ? additional_error : ""));
+      fprintf (stderr, "%s: '--num_procs' ('-n') option required%s\n", prog_name, (additional_error ? additional_error : ""));
       error_occurred = 1;
     }
   
@@ -474,7 +474,7 @@ cmdline_parser_internal (
       static struct option long_options[] = {
         { "help",	0, NULL, 'h' },
         { "version",	0, NULL, 'V' },
-        { "num",	1, NULL, 'n' },
+        { "num_procs",	1, NULL, 'n' },
         { 0,  0, 0, 0 }
       };
 
@@ -497,11 +497,11 @@ cmdline_parser_internal (
         case 'n':	/* number.  */
         
         
-          if (update_arg( (void *)&(args_info->num_arg), 
-               &(args_info->num_orig), &(args_info->num_given),
-              &(local_args_info.num_given), optarg, 0, 0, ARG_INT,
+          if (update_arg( (void *)&(args_info->num_procs_arg), 
+               &(args_info->num_procs_orig), &(args_info->num_procs_given),
+              &(local_args_info.num_procs_given), optarg, 0, 0, ARG_INT,
               check_ambiguity, override, 0, 0,
-              "num", 'n',
+              "num_procs", 'n',
               additional_error))
             goto failure;
         
