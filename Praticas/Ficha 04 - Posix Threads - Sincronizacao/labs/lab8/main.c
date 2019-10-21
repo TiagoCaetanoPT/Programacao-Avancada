@@ -16,7 +16,7 @@
 #define MAX 		5 		/* Capacidade do buffer */
 #define LIMITE 		20 		/* Total de elementos a produzir */
 
-typedef struct 
+typedef struct
 {
     int buffer[MAX];
     int index_leitura;
@@ -34,7 +34,7 @@ void *consumidor(void *arg);
 
 
 /* main */
-int main(int argc, char *argv[]) 
+int main(int argc, char *argv[])
 {
     pthread_t t1, t2;
     thread_params_t thread_params;
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
     /* Cria thread para executar o consumidor */
 	if ((errno = pthread_create(&t1, NULL, consumidor, &thread_params)) != 0)
 		ERROR(C_ERRO_PTHREAD_CREATE, "pthread_create() failed!");
-	
+
 	/* Cria thread para executar o produtor */
 	if ((errno = pthread_create(&t2, NULL, produtor, &thread_params)) != 0)
 		ERROR(C_ERRO_PTHREAD_CREATE, "pthread_create() failed!");
@@ -66,14 +66,14 @@ int main(int argc, char *argv[])
     /* Espera que todas as threads terminem */
 	if ((errno = pthread_join(t1, NULL)) != 0)
 		ERROR(C_ERRO_PTHREAD_JOIN, "pthread_join() failed!");
-	
+
 	if ((errno = pthread_join(t2, NULL)) != 0)
 		ERROR(C_ERRO_PTHREAD_JOIN, "pthread_join() failed!");
 
 	/* Destroi o mutex */
 	if ((errno = pthread_mutex_destroy(&thread_params.mutex)) != 0)
 		ERROR(C_ERRO_MUTEX_DESTROY, "pthread_mutex_destroy() failed!");
-	
+
 	/* Destroi a condicao */
 	if ((errno = pthread_cond_destroy(&thread_params.cond)) != 0)
 		ERROR(C_ERRO_CONDITION_DESTROY, "pthread_cond_destroy() failed!");
@@ -114,7 +114,7 @@ void *produtor(void *arg)
 				return NULL;
 			}
 
-        /* Sai da seccao critica */	
+        /* Sai da seccao critica */
 		if ((errno = pthread_mutex_unlock(&(params->mutex))) != 0) {
 			WARNING("pthread_mutex_unlock() failed");
 			return NULL;
@@ -129,7 +129,7 @@ void *produtor(void *arg)
 
 
 /* consumidor */
-void *consumidor(void *arg) 
+void *consumidor(void *arg)
 {
 	thread_params_t *params = (thread_params_t *) arg;
     int i;
@@ -159,7 +159,7 @@ void *consumidor(void *arg)
 				return NULL;
 			}
 
-        /* Sai da seccao critica */	
+        /* Sai da seccao critica */
 		if ((errno = pthread_mutex_unlock(&(params->mutex))) != 0) {
 			WARNING("pthread_mutex_unlock() failed");
 			return NULL;

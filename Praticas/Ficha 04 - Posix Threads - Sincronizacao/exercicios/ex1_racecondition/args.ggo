@@ -8,7 +8,6 @@ versiontext "versiontext needed (optional)"
 # independent options
 #----------------------------
 # Mandatory option
-option "filename" f "filename" string typestr="filename" required
 #option "folder" f "folder" string typestr="dirname" required
 
 # Optional

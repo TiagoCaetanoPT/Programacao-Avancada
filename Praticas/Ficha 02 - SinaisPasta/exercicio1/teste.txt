@@ -1,0 +1,5 @@
+1ª Linha -> Isto é um teste
+2ª Linha do ficheiro
+3ª Linha do ficheiro
+4ª Linha do ficheiro
+5ª Linha do ficheiro
