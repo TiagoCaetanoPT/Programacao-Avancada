@@ -38,11 +38,9 @@ int main(int argc, char *argv[]){
     if (pid == 0) { //processo filho
         int result = 0;
         pid_t parent_pid = getppid();
-        int i = 0; //para não ficar infinitamente
-        while(result == 0 && i < 10){
+        while(result == 0){
             result = kill(parent_pid,SIGUSR1);
             sleep(5);
-            i++;
         }
     } else if (pid < 0) {
         ERROR(1, "Erro na criação do fork().\n");

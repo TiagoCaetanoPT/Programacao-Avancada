@@ -34,9 +34,9 @@ const char *gengetopt_args_info_versiontext = "versiontext needed (optional)";
 const char *gengetopt_args_info_description = "description needed (optional)";
 
 const char *gengetopt_args_info_help[] = {
-  "  -h, --help         Print help and exit",
-  "  -V, --version      Print version and exit",
-  "  -f, --file=STRING  ficheiro a ler",
+  "  -h, --help             Print help and exit",
+  "  -V, --version          Print version and exit",
+  "  -e, --execute=comando  execute",
     0
 };
 
@@ -64,15 +64,15 @@ void clear_given (struct gengetopt_args_info *args_info)
 {
   args_info->help_given = 0 ;
   args_info->version_given = 0 ;
-  args_info->file_given = 0 ;
+  args_info->execute_given = 0 ;
 }
 
 static
 void clear_args (struct gengetopt_args_info *args_info)
 {
   FIX_UNUSED (args_info);
-  args_info->file_arg = NULL;
-  args_info->file_orig = NULL;
+  args_info->execute_arg = NULL;
+  args_info->execute_orig = NULL;
   
 }
 
@@ -83,7 +83,7 @@ void init_args_info(struct gengetopt_args_info *args_info)
 
   args_info->help_help = gengetopt_args_info_help[0] ;
   args_info->version_help = gengetopt_args_info_help[1] ;
-  args_info->file_help = gengetopt_args_info_help[2] ;
+  args_info->execute_help = gengetopt_args_info_help[2] ;
   
 }
 
@@ -167,8 +167,8 @@ static void
 cmdline_parser_release (struct gengetopt_args_info *args_info)
 {
 
-  free_string_field (&(args_info->file_arg));
-  free_string_field (&(args_info->file_orig));
+  free_string_field (&(args_info->execute_arg));
+  free_string_field (&(args_info->execute_orig));
   
   
 
@@ -203,8 +203,8 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "help", 0, 0 );
   if (args_info->version_given)
     write_into_file(outfile, "version", 0, 0 );
-  if (args_info->file_given)
-    write_into_file(outfile, "file", args_info->file_orig, 0);
+  if (args_info->execute_given)
+    write_into_file(outfile, "execute", args_info->execute_orig, 0);
   
 
   i = EXIT_SUCCESS;
@@ -321,9 +321,9 @@ cmdline_parser_required2 (struct gengetopt_args_info *args_info, const char *pro
   FIX_UNUSED (additional_error);
 
   /* checks for required options */
-  if (! args_info->file_given)
+  if (! args_info->execute_given)
     {
-      fprintf (stderr, "%s: '--file' ('-f') option required%s\n", prog_name, (additional_error ? additional_error : ""));
+      fprintf (stderr, "%s: '--execute' ('-e') option required%s\n", prog_name, (additional_error ? additional_error : ""));
       error_occurred = 1;
     }
   
@@ -471,11 +471,11 @@ cmdline_parser_internal (
       static struct option long_options[] = {
         { "help",	0, NULL, 'h' },
         { "version",	0, NULL, 'V' },
-        { "file",	1, NULL, 'f' },
+        { "execute",	1, NULL, 'e' },
         { 0,  0, 0, 0 }
       };
 
-      c = getopt_long (argc, argv, "hVf:", long_options, &option_index);
+      c = getopt_long (argc, argv, "hVe:", long_options, &option_index);
 
       if (c == -1) break;	/* Exit from `while (1)' loop.  */
 
@@ -491,14 +491,14 @@ cmdline_parser_internal (
           cmdline_parser_free (&local_args_info);
           exit (EXIT_SUCCESS);
 
-        case 'f':	/* ficheiro a ler.  */
+        case 'e':	/* execute.  */
         
         
-          if (update_arg( (void *)&(args_info->file_arg), 
-               &(args_info->file_orig), &(args_info->file_given),
-              &(local_args_info.file_given), optarg, 0, 0, ARG_STRING,
+          if (update_arg( (void *)&(args_info->execute_arg), 
+               &(args_info->execute_orig), &(args_info->execute_given),
+              &(local_args_info.execute_given), optarg, 0, 0, ARG_STRING,
               check_ambiguity, override, 0, 0,
-              "file", 'f',
+              "execute", 'e',
               additional_error))
             goto failure;
         

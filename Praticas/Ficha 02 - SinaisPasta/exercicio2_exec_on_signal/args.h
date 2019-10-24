@@ -39,13 +39,13 @@ struct gengetopt_args_info
 {
   const char *help_help; /**< @brief Print help and exit help description.  */
   const char *version_help; /**< @brief Print version and exit help description.  */
-  char * file_arg;	/**< @brief ficheiro a ler.  */
-  char * file_orig;	/**< @brief ficheiro a ler original value given at command line.  */
-  const char *file_help; /**< @brief ficheiro a ler help description.  */
+  char * execute_arg;	/**< @brief execute.  */
+  char * execute_orig;	/**< @brief execute original value given at command line.  */
+  const char *execute_help; /**< @brief execute help description.  */
   
   unsigned int help_given ;	/**< @brief Whether help was given.  */
   unsigned int version_given ;	/**< @brief Whether version was given.  */
-  unsigned int file_given ;	/**< @brief Whether file was given.  */
+  unsigned int execute_given ;	/**< @brief Whether execute was given.  */
 
 } ;
 

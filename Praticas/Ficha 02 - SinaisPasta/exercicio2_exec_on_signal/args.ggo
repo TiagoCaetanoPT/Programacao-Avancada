@@ -8,10 +8,10 @@ versiontext "versiontext needed (optional)"
 # independent options
 #----------------------------
 # Mandatory option
-option "file" f "ficheiro a ler" string required
+option "execute" e "execute" string typestr="comando" required
 
 # Optional
-#option "filename" f "number" int optional
+#option "num" n "number" int optional
 
 #
 # NOTE: support for this file needs to be enabled in 'makefile'

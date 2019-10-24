@@ -18,7 +18,7 @@ LDFLAGS=#-pg
 IFLAGS=-linux -brs -brf -br
 
 # Name of the executable
-PROGRAM=showFirst
+PROGRAM=exec_on_signal
 
 # Prefix for the gengetopt file (if gengetopt is used)
 PROGRAM_OPT=args
