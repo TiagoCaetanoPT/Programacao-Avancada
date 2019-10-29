@@ -1,0 +1,20 @@
+package "Example of .ggo file"
+version "1.0"
+purpose "Simple example (optional)"
+description "description needed (optional)"
+versiontext "versiontext needed (optional)"
+
+#----------------------------
+# independent options
+#----------------------------
+# Mandatory option
+#option "folder" f "folder" string typestr="dirname" required
+option "max" M "número inteiro  menor ou igual que 64" int optional default = "64"
+option "min" m "número inteiro maior ou igual que 1" int optional	default = "1"
+ 
+# Optional
+#option "num" n "number" int optional
+
+#
+# NOTE: support for this file needs to be enabled in 'makefile'
+#

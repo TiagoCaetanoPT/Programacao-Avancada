@@ -55,7 +55,7 @@ int main(int argc, char *argv[]){
     ERROR(C_ERRO_MUTEX_DESTROY, "pthread_mutex_destroy() failed!");
 
     printf("Contador %d\n", thread_params.contador);
-
+    
     return 0;
 }
 

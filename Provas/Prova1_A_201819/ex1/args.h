@@ -39,9 +39,17 @@ struct gengetopt_args_info
 {
   const char *help_help; /**< @brief Print help and exit help description.  */
   const char *version_help; /**< @brief Print version and exit help description.  */
+  int max_arg;	/**< @brief número inteiro  menor ou igual que 64 (default='64').  */
+  char * max_orig;	/**< @brief número inteiro  menor ou igual que 64 original value given at command line.  */
+  const char *max_help; /**< @brief número inteiro  menor ou igual que 64 help description.  */
+  int min_arg;	/**< @brief número inteiro maior ou igual que 1 (default='1').  */
+  char * min_orig;	/**< @brief número inteiro maior ou igual que 1 original value given at command line.  */
+  const char *min_help; /**< @brief número inteiro maior ou igual que 1 help description.  */
   
   unsigned int help_given ;	/**< @brief Whether help was given.  */
   unsigned int version_given ;	/**< @brief Whether version was given.  */
+  unsigned int max_given ;	/**< @brief Whether max was given.  */
+  unsigned int min_given ;	/**< @brief Whether min was given.  */
 
 } ;
 

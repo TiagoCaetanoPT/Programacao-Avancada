@@ -36,10 +36,13 @@ const char *gengetopt_args_info_description = "description needed (optional)";
 const char *gengetopt_args_info_help[] = {
   "  -h, --help     Print help and exit",
   "  -V, --version  Print version and exit",
+  "  -M, --max=INT  número inteiro  menor ou igual que 64  (default=`64')",
+  "  -m, --min=INT  número inteiro maior ou igual que 1  (default=`1')",
     0
 };
 
 typedef enum {ARG_NO
+  , ARG_INT
 } cmdline_parser_arg_type;
 
 static
@@ -60,12 +63,18 @@ void clear_given (struct gengetopt_args_info *args_info)
 {
   args_info->help_given = 0 ;
   args_info->version_given = 0 ;
+  args_info->max_given = 0 ;
+  args_info->min_given = 0 ;
 }
 
 static
 void clear_args (struct gengetopt_args_info *args_info)
 {
   FIX_UNUSED (args_info);
+  args_info->max_arg = 64;
+  args_info->max_orig = NULL;
+  args_info->min_arg = 1;
+  args_info->min_orig = NULL;
   
 }
 
@@ -76,6 +85,8 @@ void init_args_info(struct gengetopt_args_info *args_info)
 
   args_info->help_help = gengetopt_args_info_help[0] ;
   args_info->version_help = gengetopt_args_info_help[1] ;
+  args_info->max_help = gengetopt_args_info_help[2] ;
+  args_info->min_help = gengetopt_args_info_help[3] ;
   
 }
 
@@ -144,12 +155,23 @@ cmdline_parser_params_create(void)
   return params;
 }
 
+static void
+free_string_field (char **s)
+{
+  if (*s)
+    {
+      free (*s);
+      *s = 0;
+    }
+}
 
 
 static void
 cmdline_parser_release (struct gengetopt_args_info *args_info)
 {
 
+  free_string_field (&(args_info->max_orig));
+  free_string_field (&(args_info->min_orig));
   
   
 
@@ -184,6 +206,10 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "help", 0, 0 );
   if (args_info->version_given)
     write_into_file(outfile, "version", 0, 0 );
+  if (args_info->max_given)
+    write_into_file(outfile, "max", args_info->max_orig, 0);
+  if (args_info->min_given)
+    write_into_file(outfile, "min", args_info->min_orig, 0);
   
 
   i = EXIT_SUCCESS;
@@ -287,6 +313,105 @@ cmdline_parser_required (struct gengetopt_args_info *args_info, const char *prog
 
 static char *package_name = 0;
 
+/**
+ * @brief updates an option
+ * @param field the generic pointer to the field to update
+ * @param orig_field the pointer to the orig field
+ * @param field_given the pointer to the number of occurrence of this option
+ * @param prev_given the pointer to the number of occurrence already seen
+ * @param value the argument for this option (if null no arg was specified)
+ * @param possible_values the possible values for this option (if specified)
+ * @param default_value the default value (in case the option only accepts fixed values)
+ * @param arg_type the type of this option
+ * @param check_ambiguity @see cmdline_parser_params.check_ambiguity
+ * @param override @see cmdline_parser_params.override
+ * @param no_free whether to free a possible previous value
+ * @param multiple_option whether this is a multiple option
+ * @param long_opt the corresponding long option
+ * @param short_opt the corresponding short option (or '-' if none)
+ * @param additional_error possible further error specification
+ */
+static
+int update_arg(void *field, char **orig_field,
+               unsigned int *field_given, unsigned int *prev_given, 
+               char *value, const char *possible_values[],
+               const char *default_value,
+               cmdline_parser_arg_type arg_type,
+               int check_ambiguity, int override,
+               int no_free, int multiple_option,
+               const char *long_opt, char short_opt,
+               const char *additional_error)
+{
+  char *stop_char = 0;
+  const char *val = value;
+  int found;
+  FIX_UNUSED (field);
+
+  stop_char = 0;
+  found = 0;
+
+  if (!multiple_option && prev_given && (*prev_given || (check_ambiguity && *field_given)))
+    {
+      if (short_opt != '-')
+        fprintf (stderr, "%s: `--%s' (`-%c') option given more than once%s\n", 
+               package_name, long_opt, short_opt,
+               (additional_error ? additional_error : ""));
+      else
+        fprintf (stderr, "%s: `--%s' option given more than once%s\n", 
+               package_name, long_opt,
+               (additional_error ? additional_error : ""));
+      return 1; /* failure */
+    }
+
+  FIX_UNUSED (default_value);
+    
+  if (field_given && *field_given && ! override)
+    return 0;
+  if (prev_given)
+    (*prev_given)++;
+  if (field_given)
+    (*field_given)++;
+  if (possible_values)
+    val = possible_values[found];
+
+  switch(arg_type) {
+  case ARG_INT:
+    if (val) *((int *)field) = strtol (val, &stop_char, 0);
+    break;
+  default:
+    break;
+  };
+
+  /* check numeric conversion */
+  switch(arg_type) {
+  case ARG_INT:
+    if (val && !(stop_char && *stop_char == '\0')) {
+      fprintf(stderr, "%s: invalid numeric value: %s\n", package_name, val);
+      return 1; /* failure */
+    }
+    break;
+  default:
+    ;
+  };
+
+  /* store the original value */
+  switch(arg_type) {
+  case ARG_NO:
+    break;
+  default:
+    if (value && orig_field) {
+      if (no_free) {
+        *orig_field = value;
+      } else {
+        if (*orig_field)
+          free (*orig_field); /* free previous string */
+        *orig_field = gengetopt_strdup (value);
+      }
+    }
+  };
+
+  return 0; /* OK */
+}
 
 
 int
@@ -328,10 +453,12 @@ cmdline_parser_internal (
       static struct option long_options[] = {
         { "help",	0, NULL, 'h' },
         { "version",	0, NULL, 'V' },
+        { "max",	1, NULL, 'M' },
+        { "min",	1, NULL, 'm' },
         { 0,  0, 0, 0 }
       };
 
-      c = getopt_long (argc, argv, "hV", long_options, &option_index);
+      c = getopt_long (argc, argv, "hVM:m:", long_options, &option_index);
 
       if (c == -1) break;	/* Exit from `while (1)' loop.  */
 
@@ -347,6 +474,30 @@ cmdline_parser_internal (
           cmdline_parser_free (&local_args_info);
           exit (EXIT_SUCCESS);
 
+        case 'M':	/* número inteiro  menor ou igual que 64.  */
+        
+        
+          if (update_arg( (void *)&(args_info->max_arg), 
+               &(args_info->max_orig), &(args_info->max_given),
+              &(local_args_info.max_given), optarg, 0, "64", ARG_INT,
+              check_ambiguity, override, 0, 0,
+              "max", 'M',
+              additional_error))
+            goto failure;
+        
+          break;
+        case 'm':	/* número inteiro maior ou igual que 1.  */
+        
+        
+          if (update_arg( (void *)&(args_info->min_arg), 
+               &(args_info->min_orig), &(args_info->min_given),
+              &(local_args_info.min_given), optarg, 0, "1", ARG_INT,
+              check_ambiguity, override, 0, 0,
+              "min", 'm',
+              additional_error))
+            goto failure;
+        
+          break;
 
         case 0:	/* Long option with no short option */
         case '?':	/* Invalid option.  */
