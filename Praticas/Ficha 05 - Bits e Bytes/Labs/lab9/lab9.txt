@@ -4,12 +4,12 @@ Considerando o código seguinte, qual é o valor de B?
 	short A = 0x1122;
 	short B = A ^ A;
 
-	B =  0xFFFF
+	B =  0x0000
 
 	A binario = 0001 0001 0010 0010
 	A binario = 0001 0001 0010 0010
-	B binario = 1111 1111 1111 1111	
-	B hexadecimal = 0xFFFF
+	B binario = 0000 0000 0000 0000
+	B hexadecimal = 0x0000
 
 ---------------------------------------------------------------------------------------------
 
