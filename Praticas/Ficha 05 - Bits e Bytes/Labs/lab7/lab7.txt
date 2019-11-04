@@ -5,7 +5,12 @@ Considerando o código seguinte, qual é o valor de C?
 	short B = 0x2211;
 	C = A | B;
 
-	C =  ?
+	C =  0x3333
+	
+	A binario = 0001 0001 0010 0010
+	B binario = 0010 0010 0001 0001
+	C binario = 0011 0011 0011 0011
+	C hexadecimal = 0x3333
 
 ---------------------------------------------------------------------------------------------
 
