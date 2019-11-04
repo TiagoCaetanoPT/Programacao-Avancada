@@ -31,9 +31,8 @@ typedef struct{
     int id; 				/* identificador da thread */
     pthread_mutex_t *mutex;
     pthread_cond_t *cond;
-    int tamanho
+    int *size;
 }thread_params_t;
-
 
 int main(int argc, char *argv[]){
     /* Disable warnings */
@@ -47,7 +46,6 @@ int main(int argc, char *argv[]){
     pthread_t tids[args.threads_arg]; //vetor das threads
     pthread_t t_colher; //vetor das threads
     thread_params_t thread_params[args.threads_arg]; //variavel do tido da estrutura
-    // thread_params.contador = 0; //inicializa o contador da estrutura
     pthread_mutex_t mutex;		/* mutex que vai ser 'partilhado' por todas as threads */
     pthread_cond_t cond;		/* variável de condição que vai ser 'partilhada' por todas as threads */
     int i;
@@ -75,7 +73,7 @@ int main(int argc, char *argv[]){
         thread_params[i].id = i + 1;
         thread_params[i].mutex = &mutex;
         thread_params[i].cond = &cond;
-        thread_params[i].tamanho = args.size_arg;
+        thread_params[i].size = args.size_arg;
     }
 
     /* Criação das threads + passagem de parametro */
@@ -107,10 +105,12 @@ int main(int argc, char *argv[]){
     // gengetopt: libertar recurso (assim que possível)
     cmdline_parser_free(&args);
 
-
     return 0;
 }
 
+
+//////////////////////////////////////////////// Funções
+////////////////////////////// Threads Produtoras
 void *produzir(void *arg){
     thread_params_t *params = (thread_params_t *) arg;
     unsigned int seedp = pthread_self();
@@ -121,22 +121,24 @@ void *produzir(void *arg){
         WARNING("pthread_mutex_lock() failed\n");
         return NULL;
     }
+    
+    int num = (rand_r(&seedp) % 10) +1;
+    /* a primeira thread sinaliza uma variável de condição, as restantes esperam nessa variável */
+    /* Notifica threads à espera na variável de condição */
+    if ((errno = pthread_cond_broadcast(params->cond)) != 0){
+        WARNING("pthread_cond_broadcast() failed");
+        return NULL;
+    }
 
-        int num = (rand_r(&seedp) % 10) +1;
-        /* a primeira thread sinaliza uma variável de condição, as restantes esperam nessa variável */
-        /* Notifica threads à espera na variável de condição */
-        if ((errno = pthread_cond_broadcast(params->cond)) != 0){
-            WARNING("pthread_cond_broadcast() failed");
-            return NULL;
-        }
+    // params->buffer[i] = num;
+    printf("[Worker:%d] writing '%d' at position %d\n",params->id, num, i);
+    i++;
+    sleep(1);
 
-        printf("[Worker:%d] writing '%d' at position %d\n",params->id, num, i);
-        usleep(10000);
-
-        if ((errno = pthread_cond_wait(params->cond, params->mutex)) != 0) {
-            WARNING("pthread_cond_wait() failed");
-            return NULL;
-        }
+    if ((errno = pthread_cond_wait(params->cond, params->mutex)) != 0) {
+        WARNING("pthread_cond_wait() failed");
+        return NULL;
+    }
 
     /*MUTEX: Sai da secçao crítica */
     if ((errno = pthread_mutex_unlock(params->mutex)) != 0) {
@@ -144,10 +146,10 @@ void *produzir(void *arg){
         return NULL;
     }
 
-
     return NULL;
 }
 
+////////////////////////////// Thread consumidora
 void *colher(void *arg){
     thread_params_t *params = (thread_params_t *) arg;
 
