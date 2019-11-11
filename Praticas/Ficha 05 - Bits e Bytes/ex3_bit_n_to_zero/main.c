@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
 	}
 
     int ret = bit_n_to_zero(args.input_arg, args.bit_to_zero_arg);
-    printf("bit #%zu tem valor %d (%d)\n",args.bit_to_zero_arg, ret ,args.input_arg);
+    printf("Valor: %d com o bit #%zu (%d)\n", args.input_arg, args.bit_to_zero_arg, ret);
 
     cmdline_parser_free(&args);
     return 0;
@@ -40,10 +40,5 @@ int bit_n_to_zero(int input, size_t bit_to_zero){
     }
 
     mask = 1 << bit_to_zero; // prepara a mascara para a verificacao (AND binario)
-    if (input & ~mask) {
-        return 1;
-    }
-    else{
-        return 0;
-    }
+    return input & ~mask;
 }
