@@ -16,7 +16,6 @@
 #define NUM_THREADS 200
 #define LOOP 1000
 
-
 void *task(void *arg);
 
 /* Estrutura a 'passar' às threads */
@@ -55,7 +54,7 @@ int main(int argc, char *argv[]){
     ERROR(C_ERRO_MUTEX_DESTROY, "pthread_mutex_destroy() failed!");
 
     printf("Contador %d\n", thread_params.contador);
-    
+
     return 0;
 }
 

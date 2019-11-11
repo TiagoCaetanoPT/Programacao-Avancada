@@ -11,12 +11,12 @@
 #include "memory.h"
 #include "args.h"
 
-#define ERROR_STRING    1
-#define ERROR_CMDLINE   2
+#define ERROR_CMDLINE   1
+#define ERROR_STRING    2
 
 int bin_to_decimal(const char *bin_s_ptr);
 
-int main(int argc, char const *argv[]) {
+int main(int argc, char *argv[]) {
     (void)argc; (void)argv;
 
     struct gengetopt_args_info args;

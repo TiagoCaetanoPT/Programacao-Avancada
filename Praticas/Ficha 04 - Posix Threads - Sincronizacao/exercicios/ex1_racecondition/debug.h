@@ -4,8 +4,8 @@
  *
  * Macros que serão usadas nos programas desenvolvidos ao longo dos
  * exemplos. Estas macros podem receber um número variável de parâmetros
- * através de uma string de formatação como no "printf". Seguem-se alguns 
- * exemplos: 
+ * através de uma string de formatação como no "printf". Seguem-se alguns
+ * exemplos:
  * @code
  * DEBUG("i = %d e f=.2f%", i, f);
  * ERROR("%s", msg);
@@ -22,10 +22,10 @@ void error(const char *file, const int line, int exitCode, char *fmt, ...);
 void show_bytes(char *ptr, size_t num_bytes);
 
 /**
- * Macro para imprimir no stderr informações úteis 
+ * Macro para imprimir no stderr informações úteis
  * para depuração. O número de parâmetros de entrada
  * é variável.
- * 
+ *
  * @return A função não retorna nada
  * @see debug()
  */

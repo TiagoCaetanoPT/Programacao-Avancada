@@ -14,3 +14,7 @@ p7zip-full
 valgrind
 vim
 g++
+
+
+
+sudo apt-get install curl doxygen gdb gdb-doc geany gedit gengetopt git indent manpages-dev manpages-posix-dev ntp p7zip-full valgrind vim g++
