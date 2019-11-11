@@ -42,14 +42,14 @@ struct gengetopt_args_info
   int input_arg;	/**< @brief input.  */
   char * input_orig;	/**< @brief input original value given at command line.  */
   const char *input_help; /**< @brief input help description.  */
-  int bit_n_arg;	/**< @brief bit_n.  */
-  char * bit_n_orig;	/**< @brief bit_n original value given at command line.  */
-  const char *bit_n_help; /**< @brief bit_n help description.  */
+  int bit_to_zero_arg;	/**< @brief bit_to_zero.  */
+  char * bit_to_zero_orig;	/**< @brief bit_to_zero original value given at command line.  */
+  const char *bit_to_zero_help; /**< @brief bit_to_zero help description.  */
   
   unsigned int help_given ;	/**< @brief Whether help was given.  */
   unsigned int version_given ;	/**< @brief Whether version was given.  */
   unsigned int input_given ;	/**< @brief Whether input was given.  */
-  unsigned int bit_n_given ;	/**< @brief Whether bit_n was given.  */
+  unsigned int bit_to_zero_given ;	/**< @brief Whether bit_to_zero was given.  */
 
 } ;
 

@@ -1,0 +1,8 @@
+package "Example of .ggo file"
+version "1.0"
+purpose "Simple example (optional)"
+description "description needed (optional)"
+versiontext "versiontext needed (optional)"
+
+option "input" i "input" int required
+option "bit_to_zero" b "bit_to_zero" int required

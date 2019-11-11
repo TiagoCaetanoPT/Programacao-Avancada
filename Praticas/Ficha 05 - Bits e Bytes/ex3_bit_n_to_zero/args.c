@@ -34,10 +34,10 @@ const char *gengetopt_args_info_versiontext = "versiontext needed (optional)";
 const char *gengetopt_args_info_description = "description needed (optional)";
 
 const char *gengetopt_args_info_help[] = {
-  "  -h, --help       Print help and exit",
-  "  -V, --version    Print version and exit",
-  "  -i, --input=INT  input",
-  "  -b, --bit_n=INT  bit_n",
+  "  -h, --help             Print help and exit",
+  "  -V, --version          Print version and exit",
+  "  -i, --input=INT        input",
+  "  -b, --bit_to_zero=INT  bit_to_zero",
     0
 };
 
@@ -66,7 +66,7 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->help_given = 0 ;
   args_info->version_given = 0 ;
   args_info->input_given = 0 ;
-  args_info->bit_n_given = 0 ;
+  args_info->bit_to_zero_given = 0 ;
 }
 
 static
@@ -74,7 +74,7 @@ void clear_args (struct gengetopt_args_info *args_info)
 {
   FIX_UNUSED (args_info);
   args_info->input_orig = NULL;
-  args_info->bit_n_orig = NULL;
+  args_info->bit_to_zero_orig = NULL;
   
 }
 
@@ -86,7 +86,7 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->help_help = gengetopt_args_info_help[0] ;
   args_info->version_help = gengetopt_args_info_help[1] ;
   args_info->input_help = gengetopt_args_info_help[2] ;
-  args_info->bit_n_help = gengetopt_args_info_help[3] ;
+  args_info->bit_to_zero_help = gengetopt_args_info_help[3] ;
   
 }
 
@@ -171,7 +171,7 @@ cmdline_parser_release (struct gengetopt_args_info *args_info)
 {
 
   free_string_field (&(args_info->input_orig));
-  free_string_field (&(args_info->bit_n_orig));
+  free_string_field (&(args_info->bit_to_zero_orig));
   
   
 
@@ -208,8 +208,8 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "version", 0, 0 );
   if (args_info->input_given)
     write_into_file(outfile, "input", args_info->input_orig, 0);
-  if (args_info->bit_n_given)
-    write_into_file(outfile, "bit_n", args_info->bit_n_orig, 0);
+  if (args_info->bit_to_zero_given)
+    write_into_file(outfile, "bit_to_zero", args_info->bit_to_zero_orig, 0);
   
 
   i = EXIT_SUCCESS;
@@ -332,9 +332,9 @@ cmdline_parser_required2 (struct gengetopt_args_info *args_info, const char *pro
       error_occurred = 1;
     }
   
-  if (! args_info->bit_n_given)
+  if (! args_info->bit_to_zero_given)
     {
-      fprintf (stderr, "%s: '--bit_n' ('-b') option required%s\n", prog_name, (additional_error ? additional_error : ""));
+      fprintf (stderr, "%s: '--bit_to_zero' ('-b') option required%s\n", prog_name, (additional_error ? additional_error : ""));
       error_occurred = 1;
     }
   
@@ -488,7 +488,7 @@ cmdline_parser_internal (
         { "help",	0, NULL, 'h' },
         { "version",	0, NULL, 'V' },
         { "input",	1, NULL, 'i' },
-        { "bit_n",	1, NULL, 'b' },
+        { "bit_to_zero",	1, NULL, 'b' },
         { 0,  0, 0, 0 }
       };
 
@@ -520,14 +520,14 @@ cmdline_parser_internal (
             goto failure;
         
           break;
-        case 'b':	/* bit_n.  */
+        case 'b':	/* bit_to_zero.  */
         
         
-          if (update_arg( (void *)&(args_info->bit_n_arg), 
-               &(args_info->bit_n_orig), &(args_info->bit_n_given),
-              &(local_args_info.bit_n_given), optarg, 0, 0, ARG_INT,
+          if (update_arg( (void *)&(args_info->bit_to_zero_arg), 
+               &(args_info->bit_to_zero_orig), &(args_info->bit_to_zero_given),
+              &(local_args_info.bit_to_zero_given), optarg, 0, 0, ARG_INT,
               check_ambiguity, override, 0, 0,
-              "bit_n", 'b',
+              "bit_to_zero", 'b',
               additional_error))
             goto failure;
         
