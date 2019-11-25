@@ -1,8 +1,8 @@
 /**
- * @file: server.c
- * @date: 2016-11-17
- * @author: autor
- */
+* @file: server.c
+* @date: 2016-11-17
+* @author: autor
+*/
 #include <stdio.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
@@ -33,13 +33,13 @@ int main(int argc, char *argv[]){
     memset(&serv_addr, 0, sizeof(serv_addr));
 
     serv_addr.sin_family = AF_INET; //familia de end. (IPv4)
-    serv_addr.sin_port = htons(PORT); //PORT de escuta
+    serv_addr.sin_port = htons(PORT); //porto de escuta
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
     int ret = bind(socket_udp, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
     if(ret == -1){
         close(socket_udp);
-        ERROR(ERROR_BIND, "Erro ao registar socket com o PORT: %d\n", PORT);
+        ERROR(ERROR_BIND, "Erro ao registar socket com o porto: %d\n", PORT);
     }
 
     processa_pedido(socket_udp);
@@ -60,7 +60,7 @@ void processa_pedido(int socket_udp){
 
     /* receber o pedido */
     if (recvfrom(socket_udp, &number, sizeof(number), 0, (struct sockaddr *)&client_addr, &client_addr_len) == -1){
-        ERROR(ERROR_RECVFROM, "Erro ao receber dados\n");
+        ERROR(ERROR_RECV, "Erro ao receber dados\n");
     }
 
     number = ntohs(number); // converte para little endian

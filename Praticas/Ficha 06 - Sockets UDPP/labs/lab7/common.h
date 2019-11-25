@@ -8,8 +8,9 @@
 #define ERROR_BIND          3
 #define ERROR_RECVFROM      4
 #define ERROR_SENDTO        5
+#define ERROR_CONNECT       6
 
-#define PORT                8899
-#define MAX_STR             20
+#define PORTO               8899
+#define MAX_SRT             20
 
 #endif
