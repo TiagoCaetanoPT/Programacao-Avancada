@@ -6,11 +6,11 @@
 #define ERROR_PORT          1
 #define ERROR_SOCKET        2
 #define ERROR_BIND          3
-#define ERROR_RECVFROM      4
+#define ERROR_RECV          4
 #define ERROR_SENDTO        5
 #define ERROR_CONNECT       6
 
-#define PORTO               8899
-#define MAX_SRT             20
+#define PORT                8899
+#define MAX_STR             20
 
 #endif

@@ -81,6 +81,7 @@ int main(int argc, char *argv[])
     // Aqui ...... Ligação com o cliente
     // =======================
 
+
     // =========================================================
     // ======================================== FECHA OS SOCKETS
     // =========================================================
@@ -94,7 +95,6 @@ int main(int argc, char *argv[])
         ERROR(56, "Can't close tcp_server_socket (IPv4)");
     }
     printf("ligação fechada. ok. \n");
-
 
     // libertar recurso (cmdline_parser)
     cmdline_parser_free(&args);

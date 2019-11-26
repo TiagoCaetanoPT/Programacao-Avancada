@@ -37,7 +37,7 @@ int main(int argc, char *argv[]){
     memset(&client_addr, 0, sizeof(client_addr));
 
     client_addr.sin_family = AF_INET; //AF_INET -> IPv4
-    client_addr.sin_port = htons(PORTO); //htons -> coloca em bigendian ... define o porto à escuta
+    client_addr.sin_port = htons(PORT); //htons -> coloca em bigendian ... define o porto à escuta
     client_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
     //gerar numero a enviar
@@ -51,9 +51,9 @@ int main(int argc, char *argv[]){
     if (sendto(socket_udp, &number, sizeof(number) +1, 0, (struct sockaddr *) &serv_addr, serv_addr_len) == -1) //enviar resposta
     ERROR(ERROR_SENDTO, "Erro ao enviar dados.\n");
 
-    char response[MAX_SRT];
+    char response[MAX_STR];
     //receber resposta
-    if (recvfrom(socket_udp, response, MAX_SRT, 0, (struct sockaddr *) &serv_addr, &serv_addr_len) == -1) //receber resposta
+    if (recvfrom(socket_udp, response, MAX_STR, 0, (struct sockaddr *) &serv_addr, &serv_addr_len) == -1) //receber resposta
     ERROR(ERROR_RECVFROM, "Can't recvfrom client\n");
 
     printf("O valor da raiz quadrada: %s\n", response);
