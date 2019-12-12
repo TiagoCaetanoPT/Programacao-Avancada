@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 	  inet_ntop(AF_INET, &cli_addr.sin_addr, ip, sizeof(ip)),
 	                                   ntohs(cli_addr.sin_port));
         processaCliente(cli_fd);
-        
+
         /* liberta recursos utilizados com este cliente*/
         close(cli_fd);
     }
@@ -68,9 +68,10 @@ int main(int argc, char *argv[])
 
 
 
-void processaCliente(int fd) 
+void processaCliente(int fd)
 {
     uint16_t  n_cli, n_serv, res;
+    ssize_t recv_bytes;
 
     srand(time(NULL));
     n_serv = 1 + (uint16_t) (100.0 * rand() / (RAND_MAX + 1.0));
@@ -78,8 +79,13 @@ void processaCliente(int fd)
 
     do {
         /* recebe dados do cliente - chamada bloqueante */
-        if (recv(fd, &n_cli, sizeof(uint16_t), 0) == -1)
-            ERROR(C_ERRO_RECV, "recv");
+        recv_bytes = recv(fd, &res, sizeof(uint16_t), 0);
+        if (recv_bytes == 0) {
+            WARNING("Ocorreu um erro no socket do cliente!\n");
+            break;
+        }
+        // if (recv(fd, &n_cli, sizeof(uint16_t), 0) == -1)
+        //     ERROR(C_ERRO_RECV, "recv");
 
         n_cli = ntohs(n_cli);
 
@@ -95,6 +101,6 @@ void processaCliente(int fd)
         /* envia resposta ao cliente */
         if (send(fd, &res, sizeof(uint16_t), 0) == -1)
             ERROR(C_ERRO_SEND, "send");
-            
+
     } while (n_cli != n_serv);
 }

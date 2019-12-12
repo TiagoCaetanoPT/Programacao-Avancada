@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 	 inet_ntop(AF_INET, &cli_addr.sin_addr, ip, sizeof(ip)),
 						 ntohs(cli_addr.sin_port));
         processaCliente(cli_fd);
-        
+
         /* liberta recursos utilizados com este cliente*/
         close(cli_fd);
     }
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 
 
 
-void processaCliente(int fd) 
+void processaCliente(int fd)
 {
     uint16_t  n_cli, n_serv, res;
 
@@ -116,6 +116,6 @@ void processaCliente(int fd)
         /* envia resposta ao cliente */
         if (send(fd, &res, sizeof(uint16_t), 0) == -1)
             ERROR(C_ERRO_SEND, "send");
-            
+
     } while (n_cli != n_serv);
 }
